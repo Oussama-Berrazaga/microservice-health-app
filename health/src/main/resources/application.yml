@@ -1,0 +1,27 @@
+server:
+  port: 8090
+logging:
+  level:
+    root: INFO
+    org:
+      springframework:
+        web: INFO
+spring:
+  application:
+    name: health-service
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/health
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka

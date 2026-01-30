@@ -1,0 +1,42 @@
+server:
+  port: 8081
+
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          "[/**]":
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+      server:
+        webflux:
+          routes:
+            - id: health-service-route
+              # 'lb://' means Load Balanced.
+              # It tells the Gateway to find 'HEALTH-SERVICE' in Eureka
+              uri: lb://HEALTH-SERVICE
+              predicates:
+                # Any request starting with /health/ will be sent to the Health Service
+                - Path=/health/**
+              filters:
+                # This regex says: take everything after /health and just use that
+                # It turns /health/api/status into /api/status
+                - RewritePath=/health/(?<segment>.*), /$\{segment}
+                - AuthenticationFilter # <-- This activates the bouncer
+
+            - id: identity-service
+              uri: lb://identity-service
+              predicates:
+                - Path=/auth/**
+  application:
+    name: gateway-service
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
