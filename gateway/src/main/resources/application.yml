@@ -5,7 +5,7 @@ spring:
   cloud:
     gateway:
       globalcors:
-        corsConfigurations:
+        cors-configurations:
           "[/**]":
             allowedOrigins: "*"
             allowedMethods:
@@ -17,10 +17,10 @@ spring:
       server:
         webflux:
           routes:
-            - id: health-service-route
+            - id: health-service
               # 'lb://' means Load Balanced.
               # It tells the Gateway to find 'HEALTH-SERVICE' in Eureka
-              uri: lb://HEALTH-SERVICE
+              uri: lb://health-service
               predicates:
                 # Any request starting with /health/ will be sent to the Health Service
                 - Path=/health/**

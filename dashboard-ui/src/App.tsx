@@ -1,5 +1,6 @@
 import { useState } from "react";
 import api from "./api/axios";
+import { loginApi } from "./api/authentication";
 
 function App() {
   const [username, setUsername] = useState("");
@@ -8,11 +9,11 @@ function App() {
   const handleLogin = async () => {
     try {
       // Calling our Gateway route to Identity Service
-      const response = await api.get(`/auth/token?name=${username}`);
-      const jwt = response.data;
+      const response = await loginApi({ username, password: "dummyPassword" });
+      const token = response.data.token;
 
-      localStorage.setItem("token", jwt);
-      setToken(jwt);
+      localStorage.setItem("token", token);
+      setToken(token);
       alert("Login Successful! Token stored.");
     } catch (error) {
       console.error("Login failed", error);

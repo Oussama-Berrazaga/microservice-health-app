@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("api/log")
+@RequestMapping("/daily-logs")
 public class DailyLogController {
 
     private final DailyLogService dailyLogService;

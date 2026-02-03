@@ -25,7 +25,7 @@ public class AuthController {
     public ResponseEntity<LoginResponse> getToken(@RequestBody LoginRequest request) {
         // In a real app, you'd check a password here.
         // For now, we are just proving the "Token Factory" works.
-        String token = jwtService.generateToken(request.login(), request.password());
+        String token = jwtService.generateToken(request.username(), request.password());
         return ResponseEntity.ok(new LoginResponse(token));
     }
 }

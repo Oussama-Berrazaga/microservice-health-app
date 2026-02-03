@@ -15,10 +15,10 @@ public class JwtService {
 
     private final String SECRET = "YourSuperSecretKeyThatIsAtLeast32CharactersLong!!";
 
-    public String generateToken(String login, String password) {
+    public String generateToken(String username, String password) {
         // TODO : validate login and password
         return Jwts.builder()
-                .setSubject(login)
+                .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour
                 .signWith(Keys.hmacShaKeyFor(SECRET.getBytes()), SignatureAlgorithm.HS256)
