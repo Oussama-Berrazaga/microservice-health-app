@@ -3,7 +3,7 @@ import { Activity, Server } from "lucide-react";
 interface StatusCardProps {
   name: string;
   status: "UP" | "DOWN" | "LOADING";
-  details: string;
+  details: React.ReactNode; // Change from string to ReactNode
   port: string;
 }
 
@@ -32,7 +32,7 @@ export default function StatusCard({
         </span>
       </div>
       <h3 className="text-lg font-bold text-slate-800 capitalize">{name}</h3>
-      <p className="text-sm text-slate-500 mt-1 h-10">{details}</p>
+      <div className="text-sm text-slate-500 mt-1 h-10">{details}</div>
       <div className="mt-6 pt-4 border-t border-slate-50 flex items-center gap-2 text-xs text-slate-400 font-mono">
         <Server size={14} />
         <span>Port: {port}</span>

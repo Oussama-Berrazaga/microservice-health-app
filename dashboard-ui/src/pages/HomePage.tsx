@@ -4,12 +4,16 @@ import StatusCard from "../components/StatusCard";
 
 // Updated to match your Record/DTO from the Admin Service
 interface Service {
+  instanceId: string;
   serviceId: string;
   status: "UP" | "DOWN" | "LOADING";
-  uri?: string;
   port?: number;
+  details?: {
+    db?: { status: string; details?: { database: string } };
+    diskSpace?: { details: { free: number; total: number } };
+    ping?: { status: string };
+  };
 }
-
 export default function HomePage({ onLogout }: { onLogout: () => void }) {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +21,7 @@ export default function HomePage({ onLogout }: { onLogout: () => void }) {
   const fetchRegistry = async () => {
     try {
       // Pointing to the new secured Admin Service route via Gateway
-      const response = await api.get("/admin/services");
+      const response = await api.get("/admin/registry");
       setServices(response.data);
       setLoading(false);
     } catch (error: any) {
@@ -35,21 +39,52 @@ export default function HomePage({ onLogout }: { onLogout: () => void }) {
     const interval = setInterval(fetchRegistry, 10000); // Poll every 10s
     return () => clearInterval(interval);
   }, []);
+  const getServiceVitals = (service: Service) => {
+    if (service.status === "DOWN" || !service.details) {
+      return { dbStatus: "OFFLINE", diskInfo: "N/A" };
+    }
 
+    // Extract DB Status
+    const dbStatus = service.details.db?.status || "N/A";
+
+    // Extract and Format Disk Info (Bytes to GB)
+    let diskInfo = "N/A";
+    if (service.details.diskSpace) {
+      const freeGb = (
+        service.details.diskSpace.details.free /
+        1024 /
+        1024 /
+        1024
+      ).toFixed(1);
+      diskInfo = `${freeGb} GB Free`;
+    }
+
+    return { dbStatus, diskInfo };
+  };
   return (
     <div className="p-8 bg-slate-50 min-h-screen">
       <header className="mb-10 flex justify-between items-end">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight italic uppercase">
-            Architect <span className="text-blue-600">OS</span>
-          </h1>
-          <p className="text-slate-500 font-medium">
-            Node: <span className="text-blue-600">Tunis-Central-01</span>
+          <div className="flex items-center gap-3">
+            <h1 className="text-4xl font-black text-slate-900 tracking-tight italic uppercase">
+              Architect <span className="text-blue-600">OS</span>
+            </h1>
+            {/* The Service Count Badge */}
+            {!loading && (
+              <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-200 shadow-sm">
+                {services.length} NODES ACTIVE
+              </span>
+            )}
+          </div>
+          <p className="text-slate-500 font-medium mt-1">
+            Node:{" "}
+            <span className="text-blue-600 font-mono">Tunis-Central-01</span>
           </p>
         </div>
+
         <button
           onClick={onLogout}
-          className="text-sm font-bold text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest"
+          className="text-sm font-bold text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest border-b-2 border-transparent hover:border-red-200 pb-1"
         >
           Terminate Session
         </button>
@@ -57,25 +92,48 @@ export default function HomePage({ onLogout }: { onLogout: () => void }) {
 
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         {loading ? (
-          <p className="text-slate-400 font-mono animate-pulse">
-            Scanning network...
-          </p>
+          <div className="col-span-3 flex justify-center py-20">
+            <p className="text-slate-400 font-mono animate-pulse uppercase tracking-widest">
+              Initializing Discovery Protocol...
+            </p>
+          </div>
         ) : (
           services
+            // Sorting by port (Ascending: 8080 -> 8081 -> 8082)
             .sort((a, b) => (a.port || 0) - (b.port || 0))
-            .map((service) => (
-              <StatusCard
-                key={service.serviceId}
-                name={service.serviceId.replace("-", " ")} // Prettify name
-                status={service.status}
-                details={
-                  service.status === "UP"
-                    ? "System Operational"
-                    : "Service Offline"
-                }
-                port={service.port?.toString() || "N/A"}
-              />
-            ))
+            .map((instance) => {
+              const { dbStatus, diskInfo } = getServiceVitals(instance);
+              return (
+                <StatusCard
+                  key={instance.instanceId}
+                  name={`${instance.serviceId.replace("-", " ")} #${instance.port}`}
+                  status={instance.status}
+                  port={instance.port?.toString() || "N/A"}
+                  details={
+                    <div className="text-xs space-y-1.5 mt-2">
+                      <div className="flex justify-between border-b border-slate-100 pb-1">
+                        <span className="text-slate-400 italic">Database</span>
+                        <span
+                          className={
+                            dbStatus === "UP"
+                              ? "text-emerald-500 font-bold"
+                              : "text-rose-500 font-bold"
+                          }
+                        >
+                          {dbStatus}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400 italic">Storage</span>
+                        <span className="text-slate-600 font-medium">
+                          {diskInfo}
+                        </span>
+                      </div>
+                    </div>
+                  }
+                />
+              );
+            })
         )}
       </section>
 

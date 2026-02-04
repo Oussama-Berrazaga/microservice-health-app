@@ -46,26 +46,30 @@ public class RegistryController {
 
     @GetMapping("/registry")
     public List<Map<String, Object>> getExtendedRegistry() {
+        // 1. Get all service names (identity, health, etc.)
         return discoveryClient.getServices().stream()
-                .map(id -> {
+                // 2. For each name, get all its running instances
+                .flatMap(serviceId -> discoveryClient.getInstances(serviceId).stream())
+                .map(instance -> {
                     Map<String, Object> info = new HashMap<>();
-                    info.put("serviceId", id);
 
-                    // Construct the internal URL (e.g., http://health-service:8080/actuator/health)
-                    // Note: Use the service instances to get the actual URI
-                    String healthUrl = "http://" + discoveryClient.getInstances(id).get(0).getHost() + ":"
-                            + discoveryClient.getInstances(id).get(0).getPort() + "/actuator/health";
+                    // Unique ID for React keys (e.g., "health-service:8082")
+                    info.put("instanceId", instance.getServiceId() + ":" + instance.getPort());
+                    info.put("serviceId", instance.getServiceId());
+                    info.put("port", instance.getPort());
+
+                    String healthUrl = instance.getUri().toString() + "/actuator/health";
 
                     try {
-                        // Fetch the real health details
                         Map<String, Object> health = restTemplate.getForObject(healthUrl, Map.class);
                         info.put("status", health.get("status"));
-                        info.put("details", health.get("components")); // Includes Disk, DB, etc.
+                        info.put("details", health.get("components"));
                     } catch (Exception e) {
                         info.put("status", "DOWN");
                         info.put("details", "Actuator unreachable");
                     }
                     return info;
-                }).collect(Collectors.toList());
+                })
+                .collect(Collectors.toList());
     }
 }
