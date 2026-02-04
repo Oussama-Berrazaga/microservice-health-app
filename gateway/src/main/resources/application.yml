@@ -26,17 +26,16 @@ spring:
               # It tells the Gateway to find 'HEALTH-SERVICE' in Eureka
               uri: lb://health-service
               predicates:
-                # Any request starting with /health/ will be sent to the Health Service
-                - Path=/health/**
-              filters:
-                # This regex says: take everything after /health and just use that
-                # It turns /health/api/status into /api/status
-                - RewritePath=/health/(?<segment>.*), /$\{segment}
+                - Path=/api/health/**
+              # filters:
+              # This regex says: take everything after /health and just use that
+              # It turns /health/api/status into /api/status
+              # - RewritePath=/health/(?<segment>.*), /$\{segment}
 
             - id: identity-service
               uri: lb://identity-service
               predicates:
-                - Path=/auth/**
+                - Path=/api/auth/**
   application:
     name: gateway-service
 eureka:

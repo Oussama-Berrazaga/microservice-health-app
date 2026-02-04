@@ -1,4 +1,4 @@
-package com.oussema.gateway.controller;
+package com.oussema.admin.controller;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.oussema.gateway.dto.ServiceInfo;
+import com.oussema.admin.dto.ServiceInfo;
 
 @RestController
 @RequestMapping("/api/admin")
