@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.oussema.gateway.dto.ServiceInfo;
 
 @RestController
-@RequestMapping("/api/registry")
+@RequestMapping("/api/admin")
 public class RegistryController {
 
     @Autowired
@@ -34,11 +34,5 @@ public class RegistryController {
                 })
 
                 .collect(Collectors.toList());
-
-        // getServices().stream()
-        // .map(serviceId -> {
-
-        // })
-        // .collect(Collectors.toList());
     }
 }

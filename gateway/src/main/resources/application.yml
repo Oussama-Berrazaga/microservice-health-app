@@ -17,6 +17,10 @@ spring:
       server:
         webflux:
           routes:
+            - id: admin-service
+              uri: lb://admin-service
+              predicates:
+                - Path=/api/admin/**
             - id: health-service
               # 'lb://' means Load Balanced.
               # It tells the Gateway to find 'HEALTH-SERVICE' in Eureka
@@ -28,7 +32,6 @@ spring:
                 # This regex says: take everything after /health and just use that
                 # It turns /health/api/status into /api/status
                 - RewritePath=/health/(?<segment>.*), /$\{segment}
-                - AuthenticationFilter # <-- This activates the bouncer
 
             - id: identity-service
               uri: lb://identity-service

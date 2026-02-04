@@ -15,7 +15,8 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll() // Whitelist our auth endpoints
+                        .requestMatchers("/api/auth/**").permitAll() // Whitelist our auth endpoints
+                        .requestMatchers("/api/registry/**").hasRole("ADMIN")
                         .anyRequest().authenticated() // Protect everything else
                 )
                 .build();

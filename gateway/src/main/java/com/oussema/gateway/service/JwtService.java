@@ -36,4 +36,13 @@ public class JwtService {
         byte[] keyBytes = SECRET.getBytes();
         return Keys.hmacShaKeyFor(keyBytes);
     }
+
+    public String extractRole(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSignKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role", String.class); // Or "roles" depending on your Identity Service
+    }
 }
