@@ -1,4 +1,4 @@
-package com.oussema.gateway;
+package com.oussema.gateway.service;
 
 import java.security.Key;
 import java.util.Date;

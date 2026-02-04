@@ -1,4 +1,4 @@
-package com.oussema.gateway;
+package com.oussema.gateway.filter;
 
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;

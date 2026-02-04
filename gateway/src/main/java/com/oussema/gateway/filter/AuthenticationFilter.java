@@ -1,9 +1,12 @@
-package com.oussema.gateway;
+package com.oussema.gateway.filter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.stereotype.Component;
+
+import com.oussema.gateway.service.JwtService;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import lombok.extern.slf4j.Slf4j;

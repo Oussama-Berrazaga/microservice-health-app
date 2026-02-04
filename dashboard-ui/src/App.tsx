@@ -1,59 +1,58 @@
 import { useState } from "react";
-import api from "./api/axios";
-import { loginApi } from "./api/authentication";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import HomePage from "./pages/HomePage";
+import ErrorPage from "./pages/ErrorPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
-  const [username, setUsername] = useState("");
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
-
-  const handleLogin = async () => {
-    try {
-      // Calling our Gateway route to Identity Service
-      const response = await loginApi({ username, password: "dummyPassword" });
-      const token = response.data.token;
-
-      localStorage.setItem("token", token);
-      setToken(token);
-      alert("Login Successful! Token stored.");
-    } catch (error) {
-      console.error("Login failed", error);
-    }
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("token"),
+  );
+  const handleLogout = () => {
+    localStorage.clear();
+    setToken("");
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
-      <h1 className="text-3xl font-bold mb-8">Microservices Dashboard</h1>
+    <div className="min-h-screen w-screen bg-slate-100 flex flex-col items-center justify-center m-0 p-0">
+      <h1 className="text-4xl font-extrabold mb-8 text-slate-800 tracking-tight">
+        Microservices <span className="text-blue-600">Architect</span>
+      </h1>
 
-      {!token ? (
-        <div className="bg-white p-8 rounded shadow-md">
-          <input
-            className="border p-2 mr-2"
-            type="text"
-            placeholder="Enter name"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+      <BrowserRouter>
+        <Routes>
+          {/* Public Route */}
+          <Route
+            path="/login"
+            element={
+              !token ? (
+                <LoginPage
+                  onLogin={() => setToken(localStorage.getItem("token"))}
+                />
+              ) : (
+                <Navigate to="/" />
+              )
+            }
           />
-          <button
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-            onClick={handleLogin}
-          >
-            Login
-          </button>
-        </div>
-      ) : (
-        <div className="text-center">
-          <p className="text-green-600 mb-4">Logged in as {username}!</p>
-          <button
-            className="bg-red-400 text-white px-2 py-1 text-sm rounded"
-            onClick={() => {
-              localStorage.clear();
-              setToken("");
-            }}
-          >
-            Logout
-          </button>
-        </div>
-      )}
+
+          {/* Protected Route */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <HomePage onLogout={handleLogout} />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<ErrorPage />} />
+        </Routes>
+      </BrowserRouter>
+
+      {/* Footer to verify page extent */}
+      <p className="mt-8 text-slate-400 text-sm font-mono">
+        Gateway Node: Active
+      </p>
     </div>
   );
 }

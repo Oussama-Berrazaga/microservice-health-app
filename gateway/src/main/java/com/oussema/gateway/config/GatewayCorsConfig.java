@@ -1,4 +1,4 @@
-package com.oussema.gateway;
+package com.oussema.gateway.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
