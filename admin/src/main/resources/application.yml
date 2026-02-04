@@ -3,3 +3,14 @@ spring:
     name: admin-service
 server:
   port: 8091
+eureka:
+  client:
+    registry-fetch-interval-seconds: 5
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+  endpoint:
+    health:
+      show-details: always # This gives you the disk and DB status

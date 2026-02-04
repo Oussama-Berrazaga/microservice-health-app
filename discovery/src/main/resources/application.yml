@@ -7,3 +7,6 @@ eureka:
   client:
     register-with-eureka: false
     fetch-registry: false
+  server:
+    response-cache-update-interval-ms: 2000 # Update the cache every 2s
+    eviction-interval-timer-in-ms: 5000 # Check for dead services every 5s

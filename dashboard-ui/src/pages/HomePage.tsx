@@ -2,72 +2,37 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import StatusCard from "../components/StatusCard";
 
-// 1. Define the shape of our service data
+// Updated to match your Record/DTO from the Admin Service
 interface Service {
-  id: string;
-  name: string;
-  endpoint: string;
-  port: string;
+  serviceId: string;
   status: "UP" | "DOWN" | "LOADING";
-  details: string;
+  uri?: string;
+  port?: number;
 }
 
 export default function HomePage({ onLogout }: { onLogout: () => void }) {
-  // 2. State to hold our list of services
-  const [services, setServices] = useState<Service[]>([
-    {
-      id: "health",
-      name: "Health Service",
-      endpoint: "/health/api/status",
-      port: "8081",
-      status: "LOADING",
-      details: "Initializing...",
-    },
-    {
-      id: "auth",
-      name: "Auth Service",
-      endpoint: "/actuator/health",
-      port: "8080",
-      status: "LOADING",
-      details: "Checking token provider...",
-    },
-    {
-      id: "resource",
-      name: "Resource Service",
-      endpoint: "/resource/status",
-      port: "8082",
-      status: "LOADING",
-      details: "Checking assets...",
-    },
-  ]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // 3. Dynamic Health Check Function
-  const checkAllServices = async () => {
-    const updatedServices = await Promise.all(
-      services.map(async (service) => {
-        try {
-          const response = await api.get(service.endpoint);
-          return {
-            ...service,
-            status: response.status === 200 ? "UP" : "DOWN",
-            details:
-              response.status === 200 ? "System healthy." : "Service error.",
-          } as Service;
-        } catch (error) {
-          return {
-            ...service,
-            status: "DOWN",
-            details: "Unreachable.",
-          } as Service;
-        }
-      }),
-    );
-    setServices(updatedServices);
+  const fetchRegistry = async () => {
+    try {
+      // Pointing to the new secured Admin Service route via Gateway
+      const response = await api.get("/admin/services");
+      setServices(response.data);
+      setLoading(false);
+    } catch (error: any) {
+      console.error("Registry fetch failed:", error);
+      if (error.response?.status === 403) {
+        // Handle unauthorized access (maybe show a warning toast)
+        alert("Session expired. Please log in again.");
+        onLogout();
+      }
+    }
   };
 
   useEffect(() => {
-    checkAllServices();
-    const interval = setInterval(checkAllServices, 15000); // Polling every 15s
+    fetchRegistry();
+    const interval = setInterval(fetchRegistry, 10000); // Poll every 10s
     return () => clearInterval(interval);
   }, []);
 
@@ -75,8 +40,8 @@ export default function HomePage({ onLogout }: { onLogout: () => void }) {
     <div className="p-8 bg-slate-50 min-h-screen">
       <header className="mb-10 flex justify-between items-end">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-            Console
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight italic uppercase">
+            Architect <span className="text-blue-600">OS</span>
           </h1>
           <p className="text-slate-500 font-medium">
             Node: <span className="text-blue-600">Tunis-Central-01</span>
@@ -90,35 +55,39 @@ export default function HomePage({ onLogout }: { onLogout: () => void }) {
         </button>
       </header>
 
-      {/* 4. The Dynamic Grid */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        {services.map((service) => (
-          <StatusCard
-            key={service.id}
-            name={service.name}
-            status={service.status}
-            details={service.details}
-            port={service.port}
-          />
-        ))}
-
-        {/* The "Add New" button still lives at the end */}
-        <div className="bg-slate-100 p-6 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 hover:bg-slate-200 transition-colors cursor-pointer group">
-          <p className="text-sm font-bold uppercase tracking-tighter group-hover:scale-110 transition-transform">
-            + Add Service
+        {loading ? (
+          <p className="text-slate-400 font-mono animate-pulse">
+            Scanning network...
           </p>
-        </div>
+        ) : (
+          services
+            .sort((a, b) => (a.port || 0) - (b.port || 0))
+            .map((service) => (
+              <StatusCard
+                key={service.serviceId}
+                name={service.serviceId.replace("-", " ")} // Prettify name
+                status={service.status}
+                details={
+                  service.status === "UP"
+                    ? "System Operational"
+                    : "Service Offline"
+                }
+                port={service.port?.toString() || "N/A"}
+              />
+            ))
+        )}
       </section>
 
-      <footer className="bg-slate-900 p-6 rounded-2xl shadow-xl text-slate-300 font-mono text-xs">
+      <footer className="bg-slate-900 p-6 rounded-2xl shadow-xl text-slate-300 font-mono text-xs border-t-4 border-blue-600">
         <h2 className="text-blue-400 font-bold uppercase mb-4 tracking-widest">
-          Real-time Telemetry
+          Discovery Protocol v1.0
         </h2>
         <div className="space-y-1 opacity-80">
           {services.map((s) => (
-            <p key={s.id}>
-              [{new Date().toLocaleTimeString()}] {s.name.toUpperCase()} -
-              status: {s.status}
+            <p key={s.serviceId}>
+              [{new Date().toLocaleTimeString()}] DISCOVERED: {s.serviceId} @
+              PORT:{s.port} - STATUS: {s.status}
             </p>
           ))}
         </div>
