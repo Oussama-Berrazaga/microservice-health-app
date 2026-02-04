@@ -1,6 +1,8 @@
 package com.oussema.admin.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.oussema.admin.dto.ServiceInfo;
 
@@ -17,8 +20,13 @@ import com.oussema.admin.dto.ServiceInfo;
 @RequestMapping("/api/admin")
 public class RegistryController {
 
-    @Autowired
-    private DiscoveryClient discoveryClient;
+    private final DiscoveryClient discoveryClient;
+    private final RestTemplate restTemplate;
+
+    public RegistryController(DiscoveryClient discoveryClient, RestTemplate restTemplate) {
+        this.discoveryClient = discoveryClient;
+        this.restTemplate = restTemplate;
+    }
 
     @GetMapping("/services")
     public List<ServiceInfo> getServices() {
@@ -34,5 +42,30 @@ public class RegistryController {
                 })
 
                 .collect(Collectors.toList());
+    }
+
+    @GetMapping("/registry")
+    public List<Map<String, Object>> getExtendedRegistry() {
+        return discoveryClient.getServices().stream()
+                .map(id -> {
+                    Map<String, Object> info = new HashMap<>();
+                    info.put("serviceId", id);
+
+                    // Construct the internal URL (e.g., http://health-service:8080/actuator/health)
+                    // Note: Use the service instances to get the actual URI
+                    String healthUrl = "http://" + discoveryClient.getInstances(id).get(0).getHost() + ":"
+                            + discoveryClient.getInstances(id).get(0).getPort() + "/actuator/health";
+
+                    try {
+                        // Fetch the real health details
+                        Map<String, Object> health = restTemplate.getForObject(healthUrl, Map.class);
+                        info.put("status", health.get("status"));
+                        info.put("details", health.get("components")); // Includes Disk, DB, etc.
+                    } catch (Exception e) {
+                        info.put("status", "DOWN");
+                        info.put("details", "Actuator unreachable");
+                    }
+                    return info;
+                }).collect(Collectors.toList());
     }
 }

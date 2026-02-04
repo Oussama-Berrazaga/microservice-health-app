@@ -17,6 +17,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll() // Whitelist our auth endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/actuator/health").permitAll() // Allow health endpoint
                         .anyRequest().authenticated() // Protect everything else
                 )
                 .build();
