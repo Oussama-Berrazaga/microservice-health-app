@@ -16,8 +16,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll() // Whitelist our auth endpoints
+                        .requestMatchers("/actuator/**").permitAll() // Allow actuator endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/actuator/health").permitAll() // Allow health endpoint
                         .anyRequest().authenticated() // Protect everything else
                 )
                 .build();

@@ -5,6 +5,7 @@ interface StatusCardProps {
   status: "UP" | "DOWN" | "LOADING";
   details: React.ReactNode; // Change from string to ReactNode
   port: string;
+  handleShutdown: () => void;
 }
 
 export default function StatusCard({
@@ -12,6 +13,7 @@ export default function StatusCard({
   status,
   details,
   port,
+  handleShutdown,
 }: StatusCardProps) {
   const isUp = status === "UP";
   return (
@@ -34,8 +36,28 @@ export default function StatusCard({
       <h3 className="text-lg font-bold text-slate-800 capitalize">{name}</h3>
       <div className="text-sm text-slate-500 mt-1 h-10">{details}</div>
       <div className="mt-6 pt-4 border-t border-slate-50 flex items-center gap-2 text-xs text-slate-400 font-mono">
-        <Server size={14} />
-        <span>Port: {port}</span>
+        {/* Action Area */}
+        {/* <div className="mt-4 pt-3 border-t border-slate-100"> */}
+        <button
+          onClick={handleShutdown}
+          className="group w-full flex items-center justify-center gap-2 py-2 bg-white text-rose-500 text-[10px] font-black uppercase tracking-[0.15em] rounded-lg border border-rose-100 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all duration-200 active:scale-[0.97]"
+        >
+          <svg
+            className="w-3 h-3 transition-transform group-hover:rotate-90"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="3"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+          Terminate Node
+        </button>
+        {/* </div> */}
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 package com.oussema.admin.controller;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,8 +9,12 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
@@ -71,5 +76,33 @@ public class RegistryController {
                     return info;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @SuppressWarnings("unchecked")
+    @PostMapping("/shutdown/{serviceId}/{port}")
+    public Map<String, String> shutdownInstance(@PathVariable String serviceId, @PathVariable int port) {
+        // Find the specific instance by port
+        String shutdownUrl = discoveryClient.getInstances(serviceId).stream()
+                .filter(inst -> inst.getPort() == port)
+                .findFirst()
+                .map(inst -> inst.getUri().toString() + "/actuator/shutdown")
+                .orElse(null);
+
+        if (shutdownUrl != null) {
+            try {
+                // 1. Set the headers to application/json
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                // 2. Create an entity with an empty body "{}"
+                HttpEntity<String> entity = new HttpEntity<>("{}", headers);
+
+                // 3. Use postForObject with the entity
+                return restTemplate.postForObject(shutdownUrl, entity, Map.class);
+            } catch (Exception e) {
+                return Collections.singletonMap("message", "Shutdown failed: " + e.getMessage());
+            }
+        }
+        return Collections.singletonMap("message", "Instance not found");
     }
 }
